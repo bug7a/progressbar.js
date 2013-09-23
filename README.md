@@ -3,7 +3,7 @@ progressbar.js
 
 (Javascript) Multiple progress bar control and tiny chart (sparkline)
 
-![alt tag](http://bugraozden.com/images/thumbnails/open-source/progressbar.js.png)
+![alt tag](http://bugraozden.com/images/thumbnails/open-source/progress-bar.js.png)
 
 Code: PNG HitTest JS<br />
 Version: 1.0<br />
