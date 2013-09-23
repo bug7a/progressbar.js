@@ -5,10 +5,10 @@ progressbar.js
 
 ![alt tag](http://bugraozden.com/images/thumbnails/open-source/progress-bar.js.png)
 
-Code: PNG HitTest JS<br />
+Code: progressbar js<br />
 Version: 1.0<br />
 
-Year: 10 Oct 2012<br />
+Year: 14 Sep 2013<br />
 Autor: Buğra ÖZDEN<br />
 Mail: bugra.ozden@gmail.com<br />
 Site: http://bugraozden.com<br />
