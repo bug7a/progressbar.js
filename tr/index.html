@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Progressbar.js</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <meta name="keywords" content="progress bar, progressbar, Javascript, UI, Library, Widgets, Component, Multi, Sparklines, Animated">
+        <meta name="description" content="(Javascript) Animated progress bar control and tiny chart (sparkline) Features; initial-mode, multi-processing, categorical-processing, limit-lines">
+        <meta name="author" content="Bugra OZDEN">
+        
+        <style>
+            
+            @font-face {
+                font-family: Corbel;
+                src: url(font/corbel.ttf);
+            }
+            
+            body {
+                font-family: Corbel;
+                margin: 0px;
+                padding: 0px;
+                top:0px;
+                right: 0px;
+                left: 0px;
+                bottom: 0px;
+            }
+            
+            a {
+                
+            }
+            
+            a:hover {
+                color:#00B2B2;
+            }
+            
+            #header-box-container {
+                
+                position: relative;
+                height: 82px;
+                width: 100%;
+                background-color:#00B2B2;
+                
+            }
+            
+            #header-box-content {
+                
+                position: relative;
+                height: 82px;
+                width: 900px;
+                background-color:transparent;
+                margin: 0px auto;
+                
+            }
+            
+            #header-box-content .title-text {
+                
+                position: absolute;
+                top:21px;
+                left:40px;
+                font-size: 35px;
+                color:white;
+                opacity: 0.8;
+                
+            }
+            
+            #header-box-content .description-1-text {
+                
+                position: absolute;
+                top:28px;
+                left:277px;
+                font-size: 14px;
+                color:white;
+                opacity: 0.5;
+                
+            }
+            
+            #header-box-content .description-2-text {
+                
+                position: absolute;
+                top:43px;
+                left:277px;
+                font-size: 14px;
+                color:white;
+                opacity: 0.8;
+                
+            }
+            
+            #header-box-content .download-button {
+                
+                position: absolute;
+                top:11px;
+                left:656px;
+                
+            }
+            
+            #preview-box-container {
+                
+                position: relative;
+                height: 260px;
+                width: 100%;
+                background-color:white;
+                
+            }
+            
+            #preview-box-container * {
+                
+                position: absolute;
+                
+            }
+            
+            #preview-box-container img {
+                
+                border-radius: 6px;
+                border:1px solid #FFFFFF;
+                
+            }
+            
+            #preview-box-container img:hover {
+                
+                border-radius: 6px;
+                border:1px solid #00B2B2;
+                opacity: 0.8;
+                
+            }
+            
+            #preview-box-content {
+                
+                position: relative;
+                height: 100%;
+                width: 900px;
+                background-color:transparent;
+                margin: 0px auto;
+                
+            }
+            
+            #preview-box-content .info-text {
+                
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                text-align: center;
+                height: 30px;
+                width: 100%;
+                background-color:transparent;
+                margin: 0px;
+                opacity: 0.6;
+                font-size: 12px;
+                
+            }
+            
+            #info-box-container {
+                
+                position: relative;
+                height: auto;
+                width: 100%;
+                background-color:#EEEEEE;
+                
+            }
+            
+            #info-box-content {
+                
+                position: relative;
+                height: 100%;
+                width: 900px;
+                background-color:transparent;
+                margin: 0px auto;
+                
+            }
+            
+            #footer-box-container {
+                
+                position: relative;
+                height: auto;
+                width: 100%;
+                background-color:transparent;
+                padding: 20px 0px 120px 0px;
+                text-align: right;
+                
+            }
+            
+            #footer-box-content {
+                
+                position: relative;
+                height: 100%;
+                width: 900px;
+                background-color:transparent;
+                margin: 0px auto;
+                
+            }
+            
+        </style>
+		
+		<script src="js/analytic.js" type="text/javascript"></script>
+        
+    </head>
+    <body>
+        <div id="header-box-container">
+            <div id="header-box-content">
+                <div class="title-text">progressbar.js</div>
+                <div class="description-1-text">A Javascript UI Component Library</div>
+                <div class="description-2-text">Çoklu işlem ve minik grafik göstergeleri</div>
+                <div class="download-button"><a href="https://sourceforge.net/projects/progressbarjs/files/latest/download"><img src="image/asset/download.button.png" alt="Progress Bar Download"/></a></div>
+            </div>
+        </div>
+        <div id="preview-box-container">
+            <div id="preview-box-content">
+                <a href="sample/initial-mode.html" style="top:37px;left:23px;"><img src="image/demo/progress-bar1.png" alt="Progress Bar JS" /></a>
+                <a href="sample/basic.html" style="top:136px;left:23px;"><img src="image/demo/progress-bar2.png" alt="Progress Bar JS" /></a>
+                <a href="sample/multi-processing.html" style="top:37px;left:333px;"><img src="image/demo/progress-bar3.png" alt="Progress Bar JS" /></a>
+                <a href="sample/categorical-processing.html" style="top:136px;left:333px;"><img src="image/demo/progress-bar4.png" alt="Progress Bar JS" /></a>
+                <a href="sample/basic2.html" style="top:37px;left:623px;"><img src="image/demo/progress-bar5.png" alt="Progress Bar JS" /></a>
+                <a href="sample/limit-lines.html" style="top:136px;left:623px;"><img src="image/demo/progress-bar6.png" alt="Progress Bar JS" /></a>
+                <div class="info-text">Önizleme için görselin üzerine tıklayın</div>
+            </div>
+        </div>
+        <div id="info-box-container">
+            <div id="info-box-content">
+                <img src="image/info/usage.png" alt="Progress Bar JS Usage" />
+            </div>
+        </div>
+        <div id="footer-box-container">
+            <div id="footer-box-content">
+                
+                <div style="position: absolute; top:0px; left:0px;"><a href="http://www.bugraozden.com/">Geliştirici</a> | Language: <a href="http://bug7a.github.io/progressbar.js/">English</a></div>
+                
+                 <a href="https://twitter.com/share" class="twitter-share-button" data-via="bug7a" data-hashtags="">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                
+                <iframe src="http://ghbtns.com/github-btn.html?user=bug7a&repo=progressbar.js&type=watch&count=true"
+  allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+
+                <iframe src="http://ghbtns.com/github-btn.html?user=bug7a&repo=progressbar.js&type=fork&count=true"
+  allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe>
+                
+                <!--<iframe src="http://ghbtns.com/github-btn.html?user=bug7a&repo=progressbar.js&type=follow&count=true"
+  allowtransparency="true" frameborder="0" scrolling="0" width="165" height="20"></iframe>-->
+
+            </div>
+        </div>
+    </body>
+</html>
