@@ -9,8 +9,8 @@
         <meta name="description" content="(Javascript) Multiple progress bar control and tiny chart (sparkline) Features; initial-mode, multi-processing, categorical-processing, limit-lines">
         <meta name="author" content="Bugra OZDEN">        
         
-        <link rel="stylesheet" href="css/libs/controls/progressbar.css" />
-        <script type="text/javascript" src="js/libs/controls/progressbar.js"></script>
+        <link rel="stylesheet" href="css/lib/control/progressbar.css" />
+        <script type="text/javascript" src="lib/control/progressbar.min.js"></script>
 
         <style type="text/css">
 
@@ -67,32 +67,36 @@
             var progressBar;
 
             window.onload = function(){
-
+                
+                //Create new progress bar
                 progressBar = new ProgressBar("my-progressbar", {'width':'100px', 'height':'4px'});
                 
-                progressBarItem = {};
-                progressBarItem[ProgressBar.OPTION_NAME.ITEM_ID] = "item1";
-                progressBarItem[ProgressBar.OPTION_NAME.TYPE] = ProgressBar.OPTION_VALUE.TYPE.BAR;
-                progressBarItem[ProgressBar.OPTION_NAME.OPACITY] = 0.2;
-                progressBarItem[ProgressBar.OPTION_NAME.SPACE] = 0;
-                progressBarItem[ProgressBar.OPTION_NAME.ALIGN] = ProgressBar.OPTION_VALUE.ALIGN.RIGHT;
-                progressBarItem[ProgressBar.OPTION_NAME.POSITION] = ProgressBar.OPTION_VALUE.POSITION.RELATIVE;
-                progressBarItem[ProgressBar.OPTION_NAME.COLOR_ID] = ProgressBar.OPTION_VALUE.COLOR_ID.YELLOW;
-                progressBarItem[ProgressBar.OPTION_NAME.PERCENT] = 0;
-                progressBar.createItem(progressBarItem); 
+                var oName = ProgressBar.OPTION_NAME;
+                var oValue = ProgressBar.OPTION_VALUE;
+                
+                //Create new item
+                barItem = {};
+                barItem[oName.ITEM_ID]    = "item1";
+                barItem[oName.TYPE]       = oValue.TYPE.BAR;
+                barItem[oName.OPACITY]    = 0.2;
+                barItem[oName.SPACE]      = 0;
+                barItem[oName.ALIGN]      = oValue.ALIGN.RIGHT;
+                barItem[oName.POSITION]   = oValue.POSITION.RELATIVE;
+                barItem[oName.COLOR_ID]   = oValue.COLOR_ID.YELLOW;
+                barItem[oName.PERCENT]    = 0;
+                progressBar.createItem(barItem);
         
-                progressBar.setPercent(60);
+                //Change percent
+                progressBar.setPercent(60, "item1");
                 
                 //Event listener: CHANGED
                 progressBar.getElement().addEventListener(ProgressBar.EVENT.CHANGED, 
                     function($event){
-                        
                         document.getElementById('my-progressbar-text4').innerHTML = $event.detail.me.getPercent() + '%';
-
                     });
                     
-               //After event listener
-               progressBar.setPercent(80);
+               //Change percent after event listener
+               progressBar.setPercent(80, "item1");
 
             }
 
