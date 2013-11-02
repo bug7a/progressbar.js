@@ -1,5 +1,4 @@
    Code: ProgressBar JS
-   Version: 1.0
 
    Year: 14 Sep 2013
    Autor: Buğra ÖZDEN
