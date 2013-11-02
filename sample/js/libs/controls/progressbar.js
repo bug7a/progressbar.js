@@ -71,523 +71,113 @@ ProgressBar.EVENT.STARTING                  = "starting";
 ProgressBar.EVENT.CHANGED                   = "changed";
 ProgressBar.EVENT.COMPLETED                 = "completed";
 
+ProgressBar.getVersion = function(){ return "1.2" };
 
-
-function ProgressBar ($elementID, $options){
-   
-    $options = $options || {};
-
-    if($elementID){
-        
-        this.private = {};
-        this.private._elementID = $elementID;
-        this.private._element = document.getElementById($elementID);
-        
-        this.private._items = [];
-        this.private._itemElements = [];
-        this.private._width = "";
-        this.private._height = "";
-        
-        //Hızlı bulma
-        this.private._exItemID = "";
-        this.private._exItemIndex = "";
-        
-        //Value kullanma
-        this.private._maxValue = 100;
-        this.private._centesimal = 1;
-        this.private._exValues = {};
-        
-        this.setWidth($options.width || ProgressBar.DEFAULT_VALUE.WIDTH);
-        this.setHeight($options.height || ProgressBar.DEFAULT_VALUE.HEIGHT);
-
-        this.private._element.innerHTML = "";
-        this.private._element.setAttribute('class', 'progressbar-control');
-
-    }
-
-}
-
-ProgressBar.prototype.getElement = function() { return this.private._element; };
-   
-ProgressBar.prototype.getWidth = function(){ return this.private._width; };
-ProgressBar.prototype.setWidth = function($width){
-
-    this.private._width = this.private._element.style.width = $width;
-    return true;
-
-};
-
-ProgressBar.prototype.getHeight = function(){ return this.private._height; };
-ProgressBar.prototype.setHeight = function($height){
-
-    this.private._height = this.private._element.style.height = $height;
-    return true;
-
-};
-
-ProgressBar.prototype.createItem = function($item){
+function ProgressBar($elementID, $options)
+{
+	
+    var _optionName = ProgressBar.OPTION_NAME;
+    var _optionValue = ProgressBar.OPTION_VALUE;
+    var _defaultValue  = ProgressBar.DEFAULT_VALUE;
+    var _event  = ProgressBar.EVENT;
     
-    if(typeof $item == "string") {
-        
-        var itemID = $item;
-        
-        $item = {};
-        $item[ProgressBar.OPTION_NAME.ITEM_ID] = itemID;
+    var _elementID = $elementID;
+    var _element = document.getElementById(_elementID);
+
+    var _items = [];
+    var _itemElements = [];
+    var _width = "";
+    var _height = "";
+
+    //Hızlı bulma
+    var _exItemID = "";
+    var _exItemIndex = "";
+
+    //Value kullanma
+    var _maxValue = 100;
+    var _centesimal = 1;
+    var _exValues = {};
     
-    }
+    var _that = this;
+	
+	var _init = function(){
+		
+	    $options = $options || {};
 
-    /*
+	    if($elementID){
 
-     <div id="my-progressbar" class="progressbar-control">
-        <div class="item-bar"></div>
-        <div class="item-bar"></div>
-        <div class="item-line"></div>
-     </div>
+	        _that.setWidth($options.width || _defaultValue.WIDTH);
+	        _that.setHeight($options.height || _defaultValue.HEIGHT);
 
-     */
+	        _element.innerHTML = "";
+	        _element.setAttribute('class', 'progressbar-control');
 
-    $item = $item || {};
-    
-    //Yeni nesne için element oluştur
-    var itemElement = this.private._element.appendChild(document.createElement('div'));
-    
-    var itemID = $item[ProgressBar.OPTION_NAME.ITEM_ID] = $item[ProgressBar.OPTION_NAME.ITEM_ID] || "";
-    
-    //Daha önce eklenmiş nesne var ise ID siz nesne ekleyemez.
-    if(this.private._items.length > 0 && itemID == "") return false;
+	    }
+		
+	}
 
-    // DEFAULT değerleri set et.
-    $item[ProgressBar.OPTION_NAME.TYPE]     = $item[ProgressBar.OPTION_NAME.TYPE] || ProgressBar.DEFAULT_VALUE.TYPE;    
-    $item[ProgressBar.OPTION_NAME.PERCENT]  = $item[ProgressBar.OPTION_NAME.PERCENT]    || ProgressBar.DEFAULT_VALUE.PERCENT;
-    $item[ProgressBar.OPTION_NAME.ALIGN]    = $item[ProgressBar.OPTION_NAME.ALIGN]      || ProgressBar.DEFAULT_VALUE.ALIGN;
-    
-    //SPACE varsa POSITION: ABSOLUTE olmalı
-    if($item[ProgressBar.OPTION_NAME.SPACE]){
-        
-        $item[ProgressBar.OPTION_NAME.POSITION] = ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE;
-        
-    }else{
-        
-        $item[ProgressBar.OPTION_NAME.SPACE] = ProgressBar.DEFAULT_VALUE.SPACE;
-        // (OK)ERROR: SPACE değeri olmayan bir ABSOLUTE item oluşturulamıyorudu.
-        $item[ProgressBar.OPTION_NAME.POSITION] = $item[ProgressBar.OPTION_NAME.POSITION] || ProgressBar.OPTION_VALUE.POSITION.RELATIVE;
-        
-    }
-    
-    //TYPE a göre değişen DEFAULT değerler
-    switch($item[ProgressBar.OPTION_NAME.TYPE]){
-        
-        case ProgressBar.OPTION_VALUE.TYPE.BAR:
+    var _initialModeEngine = function(){
 
-            $item[ProgressBar.OPTION_NAME.COLOR_ID] = $item[ProgressBar.OPTION_NAME.COLOR_ID]   || ProgressBar.DEFAULT_VALUE.COLOR_ID;
-            $item[ProgressBar.OPTION_NAME.OPACITY]  = $item[ProgressBar.OPTION_NAME.OPACITY]    || ProgressBar.DEFAULT_VALUE.OPACITY;
+        if(_items.length == 1){
 
-            break;
+            var me = _initialModeEngine;
 
-        case ProgressBar.OPTION_VALUE.TYPE.LINE:
+            var itemIndex = 0;
+            var item = _items[itemIndex];
 
-            $item[ProgressBar.OPTION_NAME.COLOR_ID] = $item[ProgressBar.OPTION_NAME.COLOR_ID]   || ProgressBar.DEFAULT_VALUE.LINE_COLOR_ID;
-            $item[ProgressBar.OPTION_NAME.OPACITY]  = $item[ProgressBar.OPTION_NAME.OPACITY]    || ProgressBar.DEFAULT_VALUE.LINE_OPACITY;
-            $item[ProgressBar.OPTION_NAME.POSITION] = ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE;
+            var currentAlign = _that.getOptionValue(_optionName.SPACE);
 
-            break;
+            var nextAlign = ( currentAlign == 0) 
+                ? 100 -  _that.getOptionValue(_optionName.PERCENT)
+                : 0;
 
-    }
-    
-    // Nesneyi listeye ekle
-    this.private._items.push($item);
-    this.private._itemElements.push(itemElement);
-    
-    //nesneyi oluşturulurken gizle
-    itemElement.style.opacity = 0;
+            _that.setOptionValue(_optionName.SPACE, nextAlign, item[_optionName.ITEM_ID]); 
 
-    itemElement.classList.add('item-' + $item[ProgressBar.OPTION_NAME.TYPE]);
+            _initialModeTimer = setTimeout(function(){
+                me();
+            }, 700);
 
-    this.setOptionValue(ProgressBar.OPTION_NAME.COLOR_ID, $item[ProgressBar.OPTION_NAME.COLOR_ID], itemID);
-    this.setOptionValue(ProgressBar.OPTION_NAME.ALIGN, $item[ProgressBar.OPTION_NAME.ALIGN], itemID);
-    // ALIGN değeri set edildiğinde SPACE değeri otomatik güncellenir.
-    //if($item[ProgressBar.OPTION_NAME.SPACE]) this.setOptionValue(ProgressBar.OPTION_NAME.SPACE, $item[ProgressBar.OPTION_NAME.SPACE], itemID);
-    this.setOptionValue(ProgressBar.OPTION_NAME.POSITION, $item[ProgressBar.OPTION_NAME.POSITION], itemID);
-    // PERCENT değeri set edildiğinde opacity değeri otomatik güncellenir.
-    //this.setOptionValue(ProgressBar.OPTION_NAME.OPACITY, $item[ProgressBar.OPTION_NAME.OPACITY], itemID);
-    this.setOptionValue(ProgressBar.OPTION_NAME.PERCENT, $item[ProgressBar.OPTION_NAME.PERCENT], itemID);
-    
-    return true;
-
-};
-
-ProgressBar.prototype.removeItem = function($itemID){
-    
-    var itemIndex = this._getItemIndexByID($itemID);
-    var itemElement = this.private._itemElements[itemIndex];
-    
-    if(itemElement != null ){
-
-        itemElement.parentNode.removeChild(itemElement);
-        this.private._items.splice(itemIndex  ,1);
-        this.private._itemElements.splice(itemIndex  ,1);
-        
-        return true;
-
-    }
-
-    return false;
-
-};
-
-ProgressBar.prototype.removeAll = function(){
-
-    if(this.private._element){
-
-        this.private._element.innerHTML = "";
-        this.private._items = [];
-        this.private._itemElements = [];
-        
-        return true;
-
-    }
-
-    return false;
-
-};
-
-ProgressBar.prototype.getMaxValue = function() { return this.private._maxValue; };
-ProgressBar.prototype.setMaxValue = function($maxValue){
-
-        if(this.private._maxValue != $maxValue && $maxValue) {
-            
-            this.private._centesimal = 100 / $maxValue;
-            this.private._maxValue = $maxValue;
-            
         }
 
-    return this.private._centesimal;
+    };
 
-};
+    //itemID sinden, items (array) içinde hangi sırada olduğunu bul.
+    var _getItemIndexByID = function($itemID){
 
-ProgressBar.prototype.getExValue = function($itemID) { 
-    
-    $itemID = $itemID || "first";
-    
-    var result = this.private._exValues[$itemID] || 0;
-    
-    return result;
-    
-};
-ProgressBar.prototype.getPercentByValue = function($value, $itemID, $maxValue){
-    
-    //Yeni maxValue gelmişse set et.
-    if($maxValue && $maxValue != this.getMaxValue()) this.setMaxValue($maxValue);
-    
-    //value değeri 0 - maxValue arasında olabilir.
-    if($value < 0) $value = 0;
-    if($value > this.getMaxValue()) $value = this.getMaxValue();
-    
-    //itemID boş ise first olarak adlandır.
-    $itemID = $itemID || "first";
+        // Hızlı bulma
+        if ($itemID && $itemID == _exItemID) {
+            return _exItemIndex;
+        }
 
-    this.private._exValues[$itemID] = $value;
-    var result = ($maxValue) ? $value * this.getMaxValue($maxValue) : $value * this.private._centesimal;
-    
-    return parseInt(result);
-    
-};
-
-ProgressBar.prototype.getOptionValue = function($optionName, $itemID){
-
-    var itemIndex = this._getItemIndexByID($itemID);
-
-    return this.private._items[itemIndex][$optionName];
-
-};
-
-ProgressBar.prototype.setOptionValue = function($optionName, $value, $itemID){
-    
-    var itemIndex = this._getItemIndexByID($itemID);
-    
-    var itemElement = this.private._itemElements[itemIndex];
-    var item = this.private._items[itemIndex];
-
-    switch ($optionName) {
-        
-        case ProgressBar.OPTION_NAME.ITEM_ID:
-            
-            //unchangeable option
-            return false;
-            
-            break;
-            
-        case ProgressBar.OPTION_NAME.TYPE:
-            
-            //unchangeable option
-            return false;
-           
-            break;
-        
-        case ProgressBar.OPTION_NAME.PERCENT:
-            
-            var me = this;
-            
-            setTimeout(function(){
-            
-            //Sadece tam değer al.
-            $value = parseInt($value) || 0;
-            
-            switch(item[ProgressBar.OPTION_NAME.TYPE]) {
-                
-                case ProgressBar.OPTION_VALUE.TYPE.BAR:
-                    
-                        $value = me._calculateAvailablePercent($value, itemIndex);
-                        itemElement.style.width = $value + '%';
-                        item[ProgressBar.OPTION_NAME.PERCENT] = $value;
-                        
-                    break;
-                    
-                case ProgressBar.OPTION_VALUE.TYPE.LINE:
-                                            
-                        //SPACE değeri değiştiğinde LINE nesnesi için PERCENT değeride otomatik değişir.
-                        //item[ProgressBar.OPTION_NAME.PERCENT] = $value;
-                        me.setOptionValue(ProgressBar.OPTION_NAME.SPACE, $value, $itemID);
-                        
-                        //Görünürlüğü ayarla
-                        //itemElement.style.opacity = item[ProgressBar.OPTION_NAME.OPACITY];
-                        
-                    break;
-                
-            }
-            
-            // Bar yüzdesi 0 ise geçici olarak görünmez yap
-            var isShown = ($value == 0 ) ? 0 : item[ProgressBar.OPTION_NAME.OPACITY];
-            itemElement.style.opacity = isShown;
-            
-            setTimeout(function(){
-                
-                me.private._element.dispatchEvent(new CustomEvent(ProgressBar.EVENT.CHANGED, {'detail':{'itemID':$itemID, 'me':me}} ));
-                
-                switch($value){
-                    
-                    case 0:
-                        
-                        me.private._element.dispatchEvent(new CustomEvent(ProgressBar.EVENT.STARTING, {'detail':{'itemID':$itemID, 'me':me}} ));
-                        break;
-
-                    case 100:
-                        
-                        me.private._element.dispatchEvent(new CustomEvent(ProgressBar.EVENT.COMPLETED, {'detail':{'itemID':$itemID, 'me':me}} ));
-                        break;
-
-                    default:
-                     
-                        break;
-
-                }
-                
-            }, 240);
-            
-            }, 10);
-
-            break;
-
-        case ProgressBar.OPTION_NAME.COLOR_ID:
-
-            itemElement.classList.remove(item[ProgressBar.OPTION_NAME.COLOR_ID]);
-            itemElement.classList.add($value);
-            item[ProgressBar.OPTION_NAME.COLOR_ID] = $value;
-            
-            break;
-            
-        case ProgressBar.OPTION_NAME.OPACITY:
-
-            //Sadece PERCENT > 0 ise uygula
-            if(item[ProgressBar.OPTION_NAME.PERCENT]) itemElement.style.opacity = $value;
-            item[ProgressBar.OPTION_NAME.OPACITY] = $value;
-            
-            break;
-            
-        case ProgressBar.OPTION_NAME.ALIGN:
-            
-            //ALIGN değeri değiştiğinde POSITION, RELATIVE olmalı
-            //this.setOptionValue(ProgressBar.OPTION_NAME.POSITION, ProgressBar.OPTION_VALUE.POSITION.RELATIVE, $itemID);
-            
-            itemElement.style.float = $value;
-            item[ProgressBar.OPTION_NAME.ALIGN] = $value;
-            
-            //ALIGN değeri değişir ise SPACE değerini güncelle
-            if(item[ProgressBar.OPTION_NAME.POSITION] == ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE)
-                if(item[ProgressBar.OPTION_NAME.SPACE]) 
-                    this.setOptionValue(ProgressBar.OPTION_NAME.SPACE, item[ProgressBar.OPTION_NAME.SPACE], $itemID);
-
-            break;
-            
-        case ProgressBar.OPTION_NAME.SPACE:
-            
-            //LINE nesnesi için SPACE değeri PERCENT değeridir.
-            if(item[ProgressBar.OPTION_NAME.TYPE] == ProgressBar.OPTION_VALUE.TYPE.LINE){
-                
-                // Değer 0 ile 100 arasında olmalı
-                if($value < 0) $value = 0;
-                if($value > 100) $value = 100;
-                
-                item[ProgressBar.OPTION_NAME.PERCENT] = $value;
-                
-            }
-
-            //SPACE değeri verilirse position u absolute yap.
-            if(item[ProgressBar.OPTION_NAME.POSITION] != ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE)
-                this.setOptionValue(ProgressBar.OPTION_NAME.POSITION, ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE, $itemID);
-            
-            //Önceki değeri sıfırla
-            itemElement.style.left = "";
-            itemElement.style.right = "";
-            
-            itemElement.style[item[ProgressBar.OPTION_NAME.ALIGN]] = $value + '%';
-            item[ProgressBar.OPTION_NAME.SPACE] = $value;
-            
-            // TODO: BAR ise PERCENT değerini tekrar güncelle, değişiklik olabilir.
-            if(item[ProgressBar.OPTION_NAME.TYPE] == ProgressBar.OPTION_VALUE.TYPE.BAR)
-                this.setOptionValue(ProgressBar.OPTION_NAME.PERCENT, item[ProgressBar.OPTION_NAME.PERCENT], $itemID);
-                        
-            break;
-            
-        case ProgressBar.OPTION_NAME.POSITION:
-            
-            switch(item[ProgressBar.OPTION_NAME.TYPE]) {
-                
-                case ProgressBar.OPTION_VALUE.TYPE.BAR:
-                    
-                        //POSITION, RELATIVE ise SPACE değerini sil.
-                        if($value == ProgressBar.OPTION_VALUE.POSITION.RELATIVE){
-                            itemElement.style.left = "";
-                            itemElement.style.right = "";
-
-                            //SPACE değerini array içine yaz.
-                            item[ProgressBar.OPTION_NAME.SPACE] = 0;
-                        }
-
-                        itemElement.style.position = $value;
-                        item[ProgressBar.OPTION_NAME.POSITION] = $value;
-            
-                    break;
-                    
-                case ProgressBar.OPTION_VALUE.TYPE.LINE:
-                    
-                        //LINE nesnesi için POSITION değeri düzenlenemez.
-                        $value = ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE;
-                        itemElement.style.position = $value;
-                        item[ProgressBar.OPTION_NAME.POSITION] = $value;
-                    
-                    break;
-                    
-            }
-            
-            break;
-
-    }
-    
-    return true;
-
-};
-
-ProgressBar.prototype.getPercent = function($itemID){
-    
-    return this.getOptionValue(ProgressBar.OPTION_NAME.PERCENT, $itemID);
-
-};
-
-ProgressBar.prototype.setPercent = function($value, $itemID){
-
-    return this.setOptionValue(ProgressBar.OPTION_NAME.PERCENT, $value, $itemID);
-
-};
-
-ProgressBar.prototype.initialMode = function(isInitialMode){
-    
-    if(isInitialMode){
-        
-        this.removeAll();
-        this.setPercent(25);
-        
-        //this.setOptionValue(ProgressBar.OPTION_NAME.OPACITY, 0.7);
-        this.setOptionValue(ProgressBar.OPTION_NAME.COLOR_ID, ProgressBar.OPTION_VALUE.COLOR_ID.WHITE);
-        
-        var me = this;
-
-        //Engine çalışmadan önce PERCENT set edilebilsin.
-        setTimeout(function(){
-            me._initialModeEngine();
-        }, 50);
-        
-    }else{
-        
-        clearTimeout(this._initialModeTimer);
-        this.removeAll();
-        
-    }
-    
-
-    
-};
-
-ProgressBar.prototype._initialModeEngine = function(){
-    
-    if(this.private._items.length == 1){
-        
-        var me = this;
-        
         var itemIndex = 0;
-        var item = this.private._items[itemIndex];
-        
-        var currentAlign = this.getOptionValue(ProgressBar.OPTION_NAME.SPACE);
 
-        var nextAlign = ( currentAlign == 0) 
-            ? 100 -  this.getOptionValue(ProgressBar.OPTION_NAME.PERCENT)
-            : 0;
+        //length 1 ise [0]
+        if(_items.length != 1){
 
-        this.setOptionValue(ProgressBar.OPTION_NAME.SPACE, nextAlign, item[ProgressBar.OPTION_NAME.ITEM_ID]); 
+            //length 0 ise yeni oluştur
+            if(_items.length == 0){
 
-        this._initialModeTimer = setTimeout(function(){
-            me._initialModeEngine();
-        }, 700);
+                //var itemID = $itemID || "";
+                _that.createItem({'itemID':$itemID});
 
-    }
-    
-};
+            //length > 1 ise bul
+            }else if(_items.length > 1){
 
-//itemID sinden, items (array) içinde hangi sırada olduğunu bul.
-ProgressBar.prototype._getItemIndexByID = function($itemID){
-    
-    // Hızlı bulma
-    if ($itemID && $itemID == this.private._exItemID) {
-        return this.private._exItemIndex;
-    }
+                //itemID boş ise [0]
+                if (!$itemID) return 0;
 
-    var itemIndex = 0;
+                //hepsine bak
+                for(var i = 0, j = _items.length; i < j; i++ ){
 
-    //length 1 ise [0]
-    if(this.private._items.length != 1){
+                    if(_items[i][_optionName.ITEM_ID] == $itemID ){
 
-        //length 0 ise yeni oluştur
-        if(this.private._items.length == 0){
+                        //Bulunan nesnenin bilgilerini sakla.
+                        _exItemID = $itemID;
+                        _exItemIndex = i;
 
-            //var itemID = $itemID || "";
-            this.createItem({'itemID':$itemID});
+                        return i;
 
-        //length > 1 ise bul
-        }else if(this.private._items.length > 1){
-            
-            //itemID boş ise [0]
-            if (!$itemID) return 0;
-            
-            //hepsine bak
-            for(var i = 0, j = this.private._items.length; i < j; i++ ){
-
-                if(this.private._items[i][ProgressBar.OPTION_NAME.ITEM_ID] == $itemID ){
-
-                    //Bulunan nesnenin bilgilerini sakla.
-                    this.private._exItemID = $itemID;
-                    this.private._exItemIndex = i;
-                    
-                    return i;
+                    }
 
                 }
 
@@ -595,63 +185,488 @@ ProgressBar.prototype._getItemIndexByID = function($itemID){
 
         }
 
-    }
+        return itemIndex;
 
-    return itemIndex;
+    };
 
-};
+    // Set edilen boyut için yeterli alan var mı?
+    var _calculateAvailablePercent = function($percent ,$itemIndex){
 
-// Set edilen boyut için yeterli alan var mı?
-ProgressBar.prototype._calculateAvailablePercent = function($percent ,$itemIndex){
+        if($percent < 0) return 0;
 
-    if($percent < 0) return 0;
+        var item = _items[$itemIndex];
 
-    var item = this.private._items[$itemIndex];
+        var totalUsedPercent = 0;
+        var availablePercent = 0;
 
-    var totalUsedPercent = 0;
-    var availablePercent = 0;
+        switch(item[_optionName.POSITION]){
 
-    switch(item[ProgressBar.OPTION_NAME.POSITION]){
+            case _optionValue.POSITION.RELATIVE:
 
-        case ProgressBar.OPTION_VALUE.POSITION.RELATIVE:
+                for(var i = 0, j = _items.length; i < j; i++ ){
 
-            for(var i = 0, j = this.private._items.length; i < j; i++ ){
+                    if(i != $itemIndex &&
+                        _items[i][_optionName.POSITION] == _optionValue.POSITION.RELATIVE){
 
-                if(i != $itemIndex &&
-                    this.private._items[i][ProgressBar.OPTION_NAME.POSITION] == ProgressBar.OPTION_VALUE.POSITION.RELATIVE){
+                        totalUsedPercent += _items[i][_optionName.PERCENT];
 
-                    totalUsedPercent += this.private._items[i][ProgressBar.OPTION_NAME.PERCENT];
+                    }
 
                 }
 
+                availablePercent = 100 - totalUsedPercent;
+
+                //POSITION: RELATIVE olan nesneler arasında yer kalmaz ise COMPLETED yap.
+                if(($percent >= availablePercent)) {
+
+                    //var me = _that;
+
+                    setTimeout(function(){
+
+                        _element.dispatchEvent(new CustomEvent(_event.COMPLETED, {'detail':{'itemID':item.itemID, 'me':_that}} ));
+
+                    }, 500);
+
+                }
+
+
+                break;
+
+            case _optionValue.POSITION.ABSOLUTE:
+
+                availablePercent = 100 - item[_optionName.SPACE];
+
+                break;
+
+        }
+
+        return ($percent <= availablePercent) ? $percent : availablePercent;
+
+    };
+        
+    this.getElement = function() { return _element; };
+   
+    this.getWidth = function(){ return _width; };
+    this.setWidth = function($width){
+
+        _width = _element.style.width = $width;
+        return true;
+
+    };
+
+    this.getHeight = function(){ return _height; };
+    this.setHeight = function($height){
+
+        _height = _element.style.height = $height;
+        return true;
+
+    };
+
+    this.createItem = function($item){
+
+        if(typeof $item == "string") {
+
+            var itemID = $item;
+
+            $item = {};
+            $item[_optionName.ITEM_ID] = itemID;
+
+        }
+
+        /*
+
+         <div id="my-progressbar" class="progressbar-control">
+            <div class="item-bar"></div>
+            <div class="item-bar"></div>
+            <div class="item-line"></div>
+         </div>
+
+         */
+
+        $item = $item || {};
+
+        //Yeni nesne için element oluştur
+        var itemElement = _element.appendChild(document.createElement('div'));
+
+        var itemID = $item[_optionName.ITEM_ID] = $item[_optionName.ITEM_ID] || "";
+
+        //Daha önce eklenmiş nesne var ise ID siz nesne ekleyemez.
+        if(_items.length > 0 && itemID == "") return false;
+
+        // DEFAULT değerleri set et.
+        $item[_optionName.TYPE]     = $item[_optionName.TYPE] || _defaultValue.TYPE;    
+        $item[_optionName.PERCENT]  = $item[_optionName.PERCENT]    || _defaultValue.PERCENT;
+        $item[_optionName.ALIGN]    = $item[_optionName.ALIGN]      || _defaultValue.ALIGN;
+
+        //SPACE varsa POSITION: ABSOLUTE olmalı
+        if($item[_optionName.SPACE]){
+
+            $item[_optionName.POSITION] = _optionValue.POSITION.ABSOLUTE;
+
+        }else{
+
+            $item[_optionName.SPACE] = _defaultValue.SPACE;
+            // (OK)ERROR: SPACE değeri olmayan bir ABSOLUTE item oluşturulamıyorudu.
+            $item[_optionName.POSITION] = $item[_optionName.POSITION] || _optionValue.POSITION.RELATIVE;
+
+        }
+
+        //TYPE a göre değişen DEFAULT değerler
+        switch($item[_optionName.TYPE]){
+
+            case _optionValue.TYPE.BAR:
+
+                $item[_optionName.COLOR_ID] = $item[_optionName.COLOR_ID]   || _defaultValue.COLOR_ID;
+                $item[_optionName.OPACITY]  = $item[_optionName.OPACITY]    || _defaultValue.OPACITY;
+
+                break;
+
+            case _optionValue.TYPE.LINE:
+
+                $item[_optionName.COLOR_ID] = $item[_optionName.COLOR_ID]   || _defaultValue.LINE_COLOR_ID;
+                $item[_optionName.OPACITY]  = $item[_optionName.OPACITY]    || _defaultValue.LINE_OPACITY;
+                $item[_optionName.POSITION] = _optionValue.POSITION.ABSOLUTE;
+                $item[_optionName.SPACE] = $item[_optionName.PERCENT];
+
+                break;
+
+        }
+
+        // Nesneyi listeye ekle
+        _items.push($item);
+        _itemElements.push(itemElement);
+
+        //nesneyi oluşturulurken gizle
+        itemElement.style.opacity = 0;
+
+        itemElement.classList.add('item-' + $item[_optionName.TYPE]);
+
+        this.setOptionValue(_optionName.COLOR_ID, $item[_optionName.COLOR_ID], itemID);
+
+        this.setOptionValue(_optionName.ALIGN, $item[_optionName.ALIGN], itemID);
+        // ALIGN değeri set edildiğinde SPACE değeri otomatik güncellenir.
+        //if($item[_optionName.SPACE]) this.setOptionValue(_optionName.SPACE, $item[_optionName.SPACE], itemID);
+        this.setOptionValue(_optionName.POSITION, $item[_optionName.POSITION], itemID);
+        // PERCENT değeri set edildiğinde opacity değeri otomatik güncellenir.
+        //this.setOptionValue(_optionName.OPACITY, $item[_optionName.OPACITY], itemID);
+        this.setOptionValue(_optionName.PERCENT, $item[_optionName.PERCENT], itemID);
+
+        return true;
+
+    };
+
+    this.removeItem = function($itemID){
+
+        var itemIndex = _getItemIndexByID($itemID);
+        var itemElement = _itemElements[itemIndex];
+
+        if(itemElement != null ){
+
+            itemElement.parentNode.removeChild(itemElement);
+            _items.splice(itemIndex  ,1);
+            _itemElements.splice(itemIndex  ,1);
+
+            return true;
+
+        }
+
+        return false;
+
+    };
+
+    this.removeAll = function(){
+
+        if(_element){
+
+            _element.innerHTML = "";
+            _items = [];
+            _itemElements = [];
+
+            return true;
+
+        }
+
+        return false;
+
+    };
+
+    this.getMaxValue = function() { return _maxValue; };
+    this.setMaxValue = function($maxValue){
+
+            if(_maxValue != $maxValue && $maxValue) {
+
+                _centesimal = 100 / $maxValue;
+                _maxValue = $maxValue;
+
             }
 
-            availablePercent = 100 - totalUsedPercent;
-            
-            //POSITION: RELATIVE olan nesneler arasında yer kalmaz ise COMPLETED yap.
-            if(($percent >= availablePercent)) {
-                
+        return _centesimal;
+
+    };
+
+    this.getExValue = function($itemID) { 
+
+        $itemID = $itemID || "first";
+
+        var result = _exValues[$itemID] || 0;
+
+        return result;
+
+    };
+    this.getPercentByValue = function($value, $itemID, $maxValue){
+
+        //Yeni maxValue gelmişse set et.
+        if($maxValue && $maxValue != this.getMaxValue()) this.setMaxValue($maxValue);
+
+        //value değeri 0 - maxValue arasında olabilir.
+        if($value < 0) $value = 0;
+        if($value > this.getMaxValue()) $value = this.getMaxValue();
+
+        //itemID boş ise first olarak adlandır.
+        $itemID = $itemID || "first";
+
+        _exValues[$itemID] = $value;
+        var result = ($maxValue) ? $value * this.getMaxValue($maxValue) : $value * _centesimal;
+
+        return parseInt(result);
+
+    };
+
+    this.getOptionValue = function($optionName, $itemID){
+
+        var itemIndex = _getItemIndexByID($itemID);
+
+        return _items[itemIndex][$optionName];
+
+    };
+
+    this.setOptionValue = function($optionName, $value, $itemID){
+
+        var itemIndex = _getItemIndexByID($itemID);
+
+        var itemElement = _itemElements[itemIndex];
+        var item = _items[itemIndex];
+
+        switch ($optionName) {
+
+            case _optionName.ITEM_ID:
+
+                //unchangeable option
+                return false;
+
+                break;
+
+            case _optionName.TYPE:
+
+                //unchangeable option
+                return false;
+
+                break;
+
+            case _optionName.PERCENT:
+
                 var me = this;
-            
+
                 setTimeout(function(){
 
-                    me.private._element.dispatchEvent(new CustomEvent(ProgressBar.EVENT.COMPLETED, {'detail':{'itemID':item.itemID, 'me':me}} ));
+                //Sadece tam değer al.
+                $value = parseInt($value) || 0;
 
-                }, 500);
-                
-            }
-                
+                switch(item[_optionName.TYPE]) {
 
-            break;
+                    case _optionValue.TYPE.BAR:
 
-        case ProgressBar.OPTION_VALUE.POSITION.ABSOLUTE:
+                            $value = _calculateAvailablePercent($value, itemIndex);
+                            itemElement.style.width = $value + '%';
+                            item[_optionName.PERCENT] = $value;
 
-            availablePercent = 100 - item[ProgressBar.OPTION_NAME.SPACE];
+                        break;
 
-            break;
+                    case _optionValue.TYPE.LINE:
 
-    }
+                            //SPACE değeri değiştiğinde LINE nesnesi için PERCENT değeride otomatik değişir.
+                            //item[_optionName.PERCENT] = $value;
+                            me.setOptionValue(_optionName.SPACE, $value, $itemID);
 
-    return ($percent <= availablePercent) ? $percent : availablePercent;
+                            //Görünürlüğü ayarla
+                            //itemElement.style.opacity = item[_optionName.OPACITY];
 
-};
+                        break;
+
+                }
+
+                // Bar yüzdesi 0 ise geçici olarak görünmez yap
+                var isShown = ($value == 0 ) ? 0 : item[_optionName.OPACITY];
+                itemElement.style.opacity = isShown;
+
+                setTimeout(function(){
+
+                    _element.dispatchEvent(new CustomEvent(_event.CHANGED, {'detail':{'itemID':$itemID, 'me':me}} ));
+
+                    switch($value){
+
+                        case 0:
+
+                            _element.dispatchEvent(new CustomEvent(_event.STARTING, {'detail':{'itemID':$itemID, 'me':me}} ));
+                            break;
+
+                        case 100:
+
+                            _element.dispatchEvent(new CustomEvent(_event.COMPLETED, {'detail':{'itemID':$itemID, 'me':me}} ));
+                            break;
+
+                        default:
+
+                            break;
+
+                    }
+
+                }, 240);
+
+                }, 10);
+
+                break;
+
+            case _optionName.COLOR_ID:
+
+                itemElement.classList.remove(item[_optionName.COLOR_ID]);
+                itemElement.classList.add($value);
+                item[_optionName.COLOR_ID] = $value;
+
+                break;
+
+            case _optionName.OPACITY:
+
+                //Sadece PERCENT > 0 ise uygula
+                if(item[_optionName.PERCENT]) itemElement.style.opacity = $value;
+                item[_optionName.OPACITY] = $value;
+
+                break;
+
+            case _optionName.ALIGN:
+
+                //ALIGN değeri değiştiğinde POSITION, RELATIVE olmalı
+                //this.setOptionValue(_optionName.POSITION, _optionValue.POSITION.RELATIVE, $itemID);
+
+                itemElement.style.cssFloat = $value;
+                item[_optionName.ALIGN] = $value;
+
+                //ALIGN değeri değişir ise SPACE değerini güncelle
+                if(item[_optionName.POSITION] == _optionValue.POSITION.ABSOLUTE)
+                    //if(item[_optionName.SPACE])
+                            this.setOptionValue(_optionName.SPACE, item[_optionName.SPACE], $itemID);
+
+                break;
+
+            case _optionName.SPACE:
+
+                //LINE nesnesi için SPACE değeri PERCENT değeridir.
+                if(item[_optionName.TYPE] == _optionValue.TYPE.LINE){
+
+                    // Değer 0 ile 100 arasında olmalı
+                    if($value < 0) $value = 0;
+                    if($value > 100) $value = 100;
+
+                    item[_optionName.PERCENT] = $value;
+
+                }
+
+                //SPACE değeri verilirse position u absolute yap.
+                if(item[_optionName.POSITION] != _optionValue.POSITION.ABSOLUTE)
+                    this.setOptionValue(_optionName.POSITION, _optionValue.POSITION.ABSOLUTE, $itemID);
+
+                //Önceki değeri sıfırla
+                itemElement.style.left = "";
+                itemElement.style.right = "";
+
+                itemElement.style[item[_optionName.ALIGN]] = $value + '%';
+                item[_optionName.SPACE] = $value;
+
+                // TODO: BAR ise PERCENT değerini tekrar güncelle, değişiklik olabilir.
+                if(item[_optionName.TYPE] == _optionValue.TYPE.BAR)
+                    this.setOptionValue(_optionName.PERCENT, item[_optionName.PERCENT], $itemID);
+
+                break;
+
+            case _optionName.POSITION:
+
+                switch(item[_optionName.TYPE]) {
+
+                    case _optionValue.TYPE.BAR:
+
+                            //POSITION, RELATIVE ise SPACE değerini sil.
+                            if($value == _optionValue.POSITION.RELATIVE){
+                                itemElement.style.left = "";
+                                itemElement.style.right = "";
+
+                                //SPACE değerini array içine yaz.
+                                item[_optionName.SPACE] = 0;
+                            }
+
+                            itemElement.style.position = $value;
+                            item[_optionName.POSITION] = $value;
+
+                        break;
+
+                    case _optionValue.TYPE.LINE:
+
+                            //LINE nesnesi için POSITION değeri düzenlenemez.
+                            $value = _optionValue.POSITION.ABSOLUTE;
+                            itemElement.style.position = $value;
+                            item[_optionName.POSITION] = $value;
+
+                        break;
+
+                }
+
+                break;
+
+        }
+
+        return true;
+
+    };
+
+    this.getPercent = function($itemID){
+
+        return this.getOptionValue(_optionName.PERCENT, $itemID);
+
+    };
+
+    this.setPercent = function($value, $itemID){
+
+        return this.setOptionValue(_optionName.PERCENT, $value, $itemID);
+
+    };
+
+    this.initialMode = function(isInitialMode){
+
+        if(isInitialMode){
+
+            this.removeAll();
+            this.setPercent(25);
+
+            //this.setOptionValue(_optionName.OPACITY, 0.7);
+            this.setOptionValue(_optionName.COLOR_ID, _optionValue.COLOR_ID.WHITE);
+
+            var me = this;
+
+            //Engine çalışmadan önce PERCENT set edilebilsin.
+            setTimeout(function(){
+                _initialModeEngine();
+            }, 50);
+
+        }else{
+
+            clearTimeout(_initialModeTimer);
+            this.removeAll();
+
+        }
+
+
+
+    };
+
+	_init();
+ 
+}
